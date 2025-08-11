@@ -9,7 +9,7 @@ warnings.filterwarnings("ignore")
 # ---------------------------
 st.set_page_config(page_title="Article Q&A and Summarizer", page_icon="📝", layout="centered")
 st.title("📝 Article Q&A and Summarizer")
-st.write("Paste an article below, ask a question, and get a summary!")
+st.write("Paste an article below, ask a question, or summarize it!")
 
 # ---------------------------
 # Load Models (cached)
@@ -60,25 +60,29 @@ min_len = st.number_input("Minimum summary length", min_value=10, max_value=200,
 max_len = st.number_input("Maximum summary length", min_value=20, max_value=500, value=50)
 
 # ---------------------------
-# Process Button
+# Buttons
 # ---------------------------
-if st.button("Run Q&A and Summarize"):
-    if article.strip():
-        # Question Answering
-        if question.strip():
+col1, col2 = st.columns(2)
+
+with col1:
+    if st.button("🔍 Get Answer"):
+        if article.strip() and question.strip():
             answer = qa_model(question=question, context=article)
             st.subheader("Answer to your question:")
             st.write(answer['answer'])
+        elif not article.strip():
+            st.error("Please paste an article first.")
         else:
-            st.info("No question entered. Skipping Q&A.")
+            st.error("Please enter a question.")
 
-        # Summarization
-        chunks = generate_chunks(article)
-        res = summarizer_model(chunks, max_length=max_len, min_length=min_len)
-        summary_text = ' '.join([summ['summary_text'] for summ in res])
+with col2:
+    if st.button("📝 Summarize Article"):
+        if article.strip():
+            chunks = generate_chunks(article)
+            res = summarizer_model(chunks, max_length=max_len, min_length=min_len)
+            summary_text = ' '.join([summ['summary_text'] for summ in res])
 
-        st.subheader("Article Summary:")
-        st.write(summary_text)
-
-    else:
-        st.error("Please paste an article first.")
+            st.subheader("Article Summary:")
+            st.write(summary_text)
+        else:
+            st.error("Please paste an article first.")
